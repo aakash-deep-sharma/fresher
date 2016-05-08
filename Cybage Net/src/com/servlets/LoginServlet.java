@@ -4,7 +4,6 @@ package com.servlets;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.*;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +16,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.dao.AdminDao;
+import com.dao.LoginDao;
+import com.dao.UserDao;
 import com.utility.Utility;
 
 /**
@@ -26,7 +28,7 @@ import com.utility.Utility;
 public class LoginServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private List<String> count;
-	private Connection con;
+	private LoginDao logDao;
 	private HttpSession session;
 
     public LoginServlet() throws Exception 
@@ -40,41 +42,49 @@ public class LoginServlet extends HttpServlet {
 		response.setContentType("text/html");
 		PrintWriter pw = response.getWriter();
 		String status = (String)request.getAttribute("status");
+		try
+		{
 		if(status.contains("f"))
 		{
-			pw.println("Invalid username or password");
+			pw.println("<h2 align='center' style='font: 400;background-color:'red';font-weight: bold;'>Invalid username or password<h2>");
 			RequestDispatcher rd = request.getRequestDispatcher("loginForm.html");
 			rd.include(request, response);
 		}
 		else
 		{
-		String username = request.getParameter("uname");
-		con =(Connection)request.getAttribute("con");
-		String type = request.getParameter("type");
+		String username =(String) request.getSession().getAttribute("uname");
+		logDao =(LoginDao)request.getSession().getAttribute("loginDao");
+		
 		
 		session=request.getSession();
-				if(type.equals("A"))
+		pw.println("<h2 align='center'>Welcome "+username+"</h2>");
+				if(status.equals("A"))
 				{	
-					pw.println("Welcome "+username+"<br>");
-					pw.print("Count of online users are:"+count.size());
+					pw.print("<h2 align='left'>Count of online users are:"+count.size()+"</h2>");
+					AdminDao aDao = new AdminDao(logDao.getCon());
+					session.setAttribute("adminDao",aDao);
 					RequestDispatcher rd = request.getRequestDispatcher("admin.html");
 					rd.include(request, response);
 				}
 				else
 				{
-					count.add(type);
-					session.setAttribute("count", count);
-					pw.println("Welcome "+username);
+					count.add(username);
+					UserDao uDao = new UserDao(logDao.getCon());
+					session.setAttribute("userDao",uDao);
 					RequestDispatcher rd = request.getRequestDispatcher("user.html");
 					rd.include(request, response);
 				}
+				
 				session.setAttribute("count", count);
-				session.setAttribute("uname",username);
-				session.setAttribute("con",con);
+				
 					
 			}
 			
-		
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 	}
 }
 

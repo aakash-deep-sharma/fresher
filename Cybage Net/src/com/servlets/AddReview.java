@@ -13,27 +13,32 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.dao.UserDao;
+
 /**
  * Servlet implementation class AddReview
  */
 @WebServlet("/AddReview")
 public class AddReview extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-       
+	
+	private UserDao uDao;  
    
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("text/html");
-		Connection con = (Connection) request.getSession().getAttribute("connection");
+		
 		PrintWriter pw = response.getWriter();
-		String bname = request.getParameter("b_name");
+		String bid = request.getParameter("b_id");
 		String breview = request.getParameter("b_review");
+		uDao =(UserDao) request.getSession().getAttribute("userDao");
 		System.out.println("finish");
 		try {
-			PreparedStatement pst = con.prepareStatement("insert into reviews(book_name,book_review) values(?,?)");
-			pst.setString(1,bname );
-			pst.setString(2,breview );
-			pst.executeUpdate();
-			pw.print("Review added");
+			String result=uDao.addReview(Integer.parseInt(bid),breview);
+			
+			if(result.contains("s"))
+				pw.print("Review added");
+			else
+				pw.print("Review not added");
+			
 			RequestDispatcher rd = request.getRequestDispatcher("user.html");
 			rd.include(request, response);
 		} catch (SQLException e) {

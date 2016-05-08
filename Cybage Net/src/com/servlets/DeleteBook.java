@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.dao.AdminDao;
+
 
 
 /**
@@ -18,27 +20,21 @@ import javax.servlet.http.HttpServletResponse;
  */
 @WebServlet("/DeleteBook")
 public class DeleteBook extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-	private PreparedStatement pst1;
-       
+	
+	private AdminDao adao;   
    
-    
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException 
 	{
 		response.setContentType("text/html");
-		Connection con = (Connection)request.getSession().getAttribute("connection");
+		adao =  (AdminDao)request.getSession().getAttribute("adminDao");
 		PrintWriter pw = response.getWriter();
+		
 		try {
-			pst1 = con.prepareStatement("delete from books where book_id=?");
+			
 			
 			String[] ids = request.getParameterValues("book");
 			
-			for(int i =0;i<ids.length;i++)
-			{
-				int id = Integer.parseInt(ids[i]);
-				pst1.setInt(1, id);
-				pst1.executeUpdate();
-			}
+			adao.deleteBook(ids);
 			pw.print("Deleted Succesfully");
 			System.out.println("deleted");
 			

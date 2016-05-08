@@ -11,18 +11,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.dao.AdminDao;
+import com.dao.LoginDao;
 import com.utility.Utility;
 
-/**
- * Servlet implementation class AddBook
- */
 @WebServlet("/AddBook")
 public class AddBook extends HttpServlet {
-	private static final long serialVersionUID = 1L;
-    
-	private Connection con;
-	private PreparedStatement pst1,pst2;
 	
+	private AdminDao adao;
 	
 	@Override
 	public void init() throws ServletException {
@@ -35,29 +31,18 @@ public class AddBook extends HttpServlet {
 		int bPrice,maxId=1;
 		String bName,bAuthor;
 		PrintWriter pw = response.getWriter();
+		adao =  (AdminDao)request.getSession().getAttribute("adminDao");
 		System.out.println("add book");
-		Connection con = (Connection)request.getSession().getAttribute("connection");
 		try 
 		{
 			bName = request.getParameter("Bookname");
 			bAuthor = request.getParameter("Bookauthor");
 			bPrice = Integer.parseInt(request.getParameter("Bookprice"));
+			maxId = adao.maxBookId();
 			
-			pst1 = con.prepareStatement("select max(book_id) from books");
-			pst2 = con.prepareStatement("insert into books values(?,?,?,?)");
+			String result = adao.addBook(maxId, bName, bAuthor, bPrice); 
 			
-			ResultSet rs = pst1.executeQuery();
-			System.out.println("pst1");
-			if(rs.next())
-				maxId = rs.getInt(1);
-			
-			pst2.setInt(1, maxId+1);
-			pst2.setString(2, bName);
-			pst2.setString(3, bAuthor);
-			pst2.setInt(4, bPrice);
-			int res =pst2.executeUpdate();
-			
-			if(res == 1)
+			if(result.contains("s"))
 				pw.print("Book Added Succesfully");
 			else
 				pw.print("Book not Added");
@@ -68,10 +53,6 @@ public class AddBook extends HttpServlet {
 		catch (SQLException e) 
 		{
 			e.printStackTrace();
-		}
-		
+		}	
 	}
-
-	
-
 }
